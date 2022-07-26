@@ -1,0 +1,38 @@
+import requests
+from Property import BasicProperty as p
+log = LS.basic_log('sendInfo_', p.main_error)
+def sendData(url, new_json):
+    try:
+        resp = requests.post(
+            url=url,
+            json=new_json,
+            auth=HTTPBasicAuth(p.api_user.encode('utf-8'), p.api_password.encode('utf-8')))
+
+        if "500" in resp.text:
+            log.error('KO received when info was sent. Data: %s. %s')
+    except Exception as ex:
+        log.error('Error sending info: ' + str(ex))
+
+
+from flask import Flask, request
+@app.route('/insertData', methods=['GET', 'POST'])
+@auth.login_required
+def insertData():
+    newData = None
+
+    try:
+        cpu_data = {'state': p.cpu_state_machine_data}
+        disk_data = {'state': p.disk_state_machine_data}
+        memory_data = {'state': p.memory_state_machine_data}
+        latency_data = {'state': p.latency_state_machine_data}
+        newData = request.json
+
+        if newData['cert'] == p.cert_password:
+            # return whatever you need
+            return "200"
+
+        else:
+            return '401'
+    except Exception as ex:
+        log.error('ServerAPI error on insertData method inserting into DB: ' + str(ex) + '. data: ' + str(newData))
+        return "500"
